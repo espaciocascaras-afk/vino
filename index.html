@@ -44,9 +44,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 .chip{padding:8px 14px;border-radius:40px;border:1.5px solid var(--border);background:rgba(255,255,255,0.03);font-size:14px;color:var(--muted);cursor:pointer;-webkit-user-select:none;user-select:none;font-family:var(--sans)}
 .chip:active{opacity:.65}
 .chip.on{background:var(--gold-dim);border-color:rgba(201,169,110,.55);color:var(--gold)}
-.frase{width:100%;background:rgba(255,255,255,0.04);border:1.5px solid var(--border);border-radius:var(--rs);padding:12px 13px;font-size:15px;color:var(--text);font-family:var(--sans);outline:none;-webkit-appearance:none}
-.frase:focus{border-color:rgba(201,169,110,.4)}
-.frase::placeholder{color:var(--muted);font-style:italic}
+/* ── FRASE DE SALA ── */
+.frase{width:100%;background:rgba(201,169,110,0.07);border:1.5px solid rgba(201,169,110,0.35);border-radius:var(--rs);padding:13px 14px;font-size:15px;color:var(--text);font-family:var(--serif);font-style:italic;outline:none;-webkit-appearance:none;resize:none;line-height:1.5}
+.frase:focus{border-color:rgba(201,169,110,.65);background:rgba(201,169,110,0.1)}
+.frase-hint{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.02em;font-style:italic}
+.save-indicator{font-size:10px;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-top:5px;opacity:0;transition:opacity .3s;text-align:right}
+.save-indicator.show{opacity:1}
 .yn-group{display:flex;gap:9px}
 .yn-btn{flex:1;padding:14px;border-radius:var(--rs);border:1.5px solid var(--border);background:rgba(255,255,255,0.03);color:var(--muted);font-size:15px;font-weight:500;cursor:pointer;font-family:var(--sans);-webkit-user-select:none}
 .yn-btn:active{opacity:.65}
@@ -79,7 +82,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 .sum-dot.none{background:rgba(255,255,255,0.04);border:2px solid var(--border)}
 .sum-info{flex:1;min-width:0}
 .sum-name{font-family:var(--serif);font-size:16px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sum-frase{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sum-frase{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic}
 .sum-badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;flex-shrink:0}
 .sum-badge.fijo{color:var(--green)}.sum-badge.prueba{color:var(--yellow)}.sum-badge.descartado{color:var(--red)}.sum-badge.none{color:var(--muted)}
 .btn-reset{display:block;width:100%;margin-top:20px;padding:13px;background:rgba(155,64,64,0.1);border:1.5px solid rgba(155,64,64,0.28);border-radius:var(--rs);color:#c06060;font-size:14px;font-family:var(--sans);text-align:center;cursor:pointer}
@@ -126,7 +129,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
         <div class="chip" data-v="Diferente">Diferente</div>
       </div>
       <div class="lbl">Frase de sala</div>
-      <input class="frase" id="frase" type="text" maxlength="80" placeholder="Ej: Rioja suave y fácil de beber">
+      <textarea class="frase" id="frase" rows="2" maxlength="140"></textarea>
+      <div class="frase-hint">Frase corta que usarías en mesa</div>
+      <div class="save-indicator" id="save-ind">✓ Guardado</div>
       <div class="lbl">¿Se vende fácil?</div>
       <div class="yn-group">
         <button class="yn-btn" id="yn-si">👍 Sí</button>
@@ -173,160 +178,242 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 <div id="toast"></div>
 
 <script>
-var WINES=[
-  {id:'quiroga',name:'Quiroga de Pablo',type:'Tinto · Rioja'},
-  {id:'berta',name:'Berta Valgañón',type:'Tinto · Rioja Alta'},
-  {id:'leza-res',name:'Leza García Reserva',type:'Tinto · Rioja'},
-  {id:'leza-gra',name:'Leza García Graciano',type:'Tinto · Rioja'},
-  {id:'leza-nar',name:'Leza García Naranja',type:'Blanco Naranja · Rioja'},
-  {id:'leza-nube',name:'Leza García Nube',type:'Semidulce · Rioja'},
-  {id:'lecea',name:'Lecea Semidulce',type:'Semidulce · Rioja'},
-  {id:'sancha',name:'Juan Carlos Sancha',type:'Blanco · Rioja'},
-  {id:'arizcuren',name:'Arizcuren',type:'Tinto · Rioja'}
+var WINES = [
+  { id:'quiroga',   name:'Quiroga de Pablo',    type:'Tinto · Rioja',          frase:'Es un Rioja más suave y fácil de beber de lo habitual' },
+  { id:'berta',     name:'Berta Valgañón',       type:'Tinto · Rioja Alta',     frase:'Es una garnacha muy fina y elegante, diferente a lo típico' },
+  { id:'leza-res',  name:'Leza García Reserva',  type:'Tinto · Rioja',          frase:'Es un Rioja clásico, equilibrado y que gusta a todo el mundo' },
+  { id:'leza-gra',  name:'Leza García Graciano', type:'Tinto · Rioja',          frase:'Es un Rioja con más carácter, para quien quiere algo distinto' },
+  { id:'leza-nar',  name:'Leza García Naranja',  type:'Blanco Naranja · Rioja', frase:'Es un vino muy diferente, para quien quiere probar algo especial' },
+  { id:'leza-nube', name:'Leza García Nube',     type:'Semidulce · Rioja',      frase:'Es un vino suave y fácil, entra muy bien' },
+  { id:'lecea',     name:'Lecea Semidulce',      type:'Semidulce · Rioja',      frase:'Es un semidulce más clásico, muy agradable y fácil de beber' },
+  { id:'sancha',    name:'Juan Carlos Sancha',   type:'Blanco · Rioja',         frase:'Es un blanco con más cuerpo, perfecto para acompañar la comida' },
+  { id:'arizcuren', name:'Arizcuren',            type:'Tinto · Rioja',          frase:'Es una garnacha con más carácter, muy buena para carne' }
 ];
-var DATA={};
-for(var i=0;i<WINES.length;i++){
-  DATA[WINES[i].id]={perfil:null,frase:'',venta:null,cliente:[],uso:null,decision:null};
-}
-var current=null;
 
-function show(id){
-  var all=document.querySelectorAll('.screen');
-  for(var i=0;i<all.length;i++) all[i].classList.remove('active');
+var STORAGE_KEY = 'cascaras_vinos_2026_v2';
+var DATA = {};
+var current = null;
+
+function guardar() {
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); } catch(e) {}
+}
+function cargar() {
+  try {
+    var raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      for (var i = 0; i < WINES.length; i++) {
+        if (parsed[WINES[i].id]) DATA[WINES[i].id] = parsed[WINES[i].id];
+      }
+    }
+  } catch(e) {}
+  for (var i = 0; i < WINES.length; i++) {
+    if (!DATA[WINES[i].id]) {
+      DATA[WINES[i].id] = { perfil:null, frase:WINES[i].frase, venta:null, cliente:[], uso:null, decision:null };
+    }
+  }
+}
+
+var _saveTimer = null;
+function mostrarGuardado() {
+  var el = document.getElementById('save-ind');
+  el.classList.add('show');
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(function(){ el.classList.remove('show'); }, 1500);
+}
+
+function show(id) {
+  var all = document.querySelectorAll('.screen');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
   document.getElementById(id).classList.add('active');
 }
 
-function renderLista(){
-  var el=document.getElementById('wine-list');
-  el.innerHTML='';
-  for(var i=0;i<WINES.length;i++){
-    (function(w){
-      var d=DATA[w.id].decision;
-      var icon='·',cls='none';
-      if(d==='fijo'){icon='✅';cls='fijo';}
-      if(d==='prueba'){icon='🤔';cls='prueba';}
-      if(d==='descartado'){icon='❌';cls='descartado';}
-      var c=document.createElement('div');
-      c.className='wine-card';
-      c.innerHTML='<div style="min-width:0;flex:1"><div class="wine-name">'+w.name+'</div><div class="wine-type">'+w.type+'</div></div><div class="card-right"><div class="ddot '+cls+'">'+icon+'</div><span class="chev">›</span></div>';
-      c.addEventListener('click',function(){abrirEval(w.id);});
+function renderLista() {
+  var el = document.getElementById('wine-list');
+  el.innerHTML = '';
+  for (var i = 0; i < WINES.length; i++) {
+    (function(w) {
+      var d = DATA[w.id].decision;
+      var icon = '·', cls = 'none';
+      if (d === 'fijo')       { icon = '✅'; cls = 'fijo'; }
+      if (d === 'prueba')     { icon = '🤔'; cls = 'prueba'; }
+      if (d === 'descartado') { icon = '❌'; cls = 'descartado'; }
+      var c = document.createElement('div');
+      c.className = 'wine-card';
+      c.innerHTML =
+        '<div style="min-width:0;flex:1">' +
+          '<div class="wine-name">' + w.name + '</div>' +
+          '<div class="wine-type">' + w.type + '</div>' +
+        '</div>' +
+        '<div class="card-right">' +
+          '<div class="ddot ' + cls + '">' + icon + '</div>' +
+          '<span class="chev">›</span>' +
+        '</div>';
+      c.addEventListener('click', function() { abrirEval(w.id); });
       el.appendChild(c);
     })(WINES[i]);
   }
 }
 
-function abrirEval(id){
-  current=id;
-  var w=null;
-  for(var i=0;i<WINES.length;i++){if(WINES[i].id===id){w=WINES[i];break;}}
-  var d=DATA[id];
-  document.getElementById('e-name').textContent=w.name;
-  document.getElementById('e-type').textContent=w.type;
-  document.getElementById('frase').value=d.frase;
-  var pchips=document.querySelectorAll('#perfil-group .chip');
-  for(var i=0;i<pchips.length;i++) pchips[i].className='chip'+(pchips[i].getAttribute('data-v')===d.perfil?' on':'');
-  document.getElementById('yn-si').className='yn-btn'+(d.venta==='si'?' yes':'');
-  document.getElementById('yn-no').className='yn-btn'+(d.venta==='no'?' no':'');
-  var cchips=document.querySelectorAll('#cliente-group .chip');
-  for(var i=0;i<cchips.length;i++) cchips[i].className='chip'+(d.cliente.indexOf(cchips[i].getAttribute('data-v'))>-1?' on':'');
-  var ubtns=['u-siempre','u-reco','u-solo'];
-  for(var i=0;i<ubtns.length;i++){var b=document.getElementById(ubtns[i]);b.className='uso-btn'+(b.getAttribute('data-v')===d.uso?' on':'');}
-  var dbtns=['fijo','prueba','descartado'];
-  for(var i=0;i<dbtns.length;i++){var b=document.getElementById('d-'+dbtns[i]);b.className='dec-btn'+(d.decision===dbtns[i]?' '+dbtns[i]:'');}
-  document.getElementById('eval-scroll').scrollTop=0;
+function abrirEval(id) {
+  current = id;
+  var w = null;
+  for (var i = 0; i < WINES.length; i++) { if (WINES[i].id === id) { w = WINES[i]; break; } }
+  var d = DATA[id];
+  document.getElementById('e-name').textContent = w.name;
+  document.getElementById('e-type').textContent = w.type;
+  document.getElementById('frase').value = d.frase;
+  document.getElementById('save-ind').classList.remove('show');
+  var pchips = document.querySelectorAll('#perfil-group .chip');
+  for (var i = 0; i < pchips.length; i++)
+    pchips[i].className = 'chip' + (pchips[i].getAttribute('data-v') === d.perfil ? ' on' : '');
+  document.getElementById('yn-si').className = 'yn-btn' + (d.venta === 'si' ? ' yes' : '');
+  document.getElementById('yn-no').className  = 'yn-btn' + (d.venta === 'no' ? ' no'  : '');
+  var cchips = document.querySelectorAll('#cliente-group .chip');
+  for (var i = 0; i < cchips.length; i++)
+    cchips[i].className = 'chip' + (d.cliente.indexOf(cchips[i].getAttribute('data-v')) > -1 ? ' on' : '');
+  var ubtns = ['u-siempre','u-reco','u-solo'];
+  for (var i = 0; i < ubtns.length; i++) {
+    var b = document.getElementById(ubtns[i]);
+    b.className = 'uso-btn' + (b.getAttribute('data-v') === d.uso ? ' on' : '');
+  }
+  var dbtns = ['fijo','prueba','descartado'];
+  for (var i = 0; i < dbtns.length; i++) {
+    var b = document.getElementById('d-' + dbtns[i]);
+    b.className = 'dec-btn' + (d.decision === dbtns[i] ? ' ' + dbtns[i] : '');
+  }
+  document.getElementById('eval-scroll').scrollTop = 0;
   show('s-eval');
 }
 
-var pchips=document.querySelectorAll('#perfil-group .chip');
-for(var i=0;i<pchips.length;i++){
-  pchips[i].addEventListener('click',function(){
-    var v=this.getAttribute('data-v'),d=DATA[current];
-    d.perfil=d.perfil===v?null:v;
-    var all=document.querySelectorAll('#perfil-group .chip');
-    for(var j=0;j<all.length;j++) all[j].className='chip'+(all[j].getAttribute('data-v')===d.perfil?' on':'');
+var pchips = document.querySelectorAll('#perfil-group .chip');
+for (var i = 0; i < pchips.length; i++) {
+  pchips[i].addEventListener('click', function() {
+    var v = this.getAttribute('data-v'), d = DATA[current];
+    d.perfil = d.perfil === v ? null : v;
+    var all = document.querySelectorAll('#perfil-group .chip');
+    for (var j = 0; j < all.length; j++)
+      all[j].className = 'chip' + (all[j].getAttribute('data-v') === d.perfil ? ' on' : '');
+    guardar(); mostrarGuardado();
   });
 }
-document.getElementById('frase').addEventListener('input',function(){DATA[current].frase=this.value;});
-document.getElementById('yn-si').addEventListener('click',function(){
-  var d=DATA[current];d.venta=d.venta==='si'?null:'si';
-  document.getElementById('yn-si').className='yn-btn'+(d.venta==='si'?' yes':'');
-  document.getElementById('yn-no').className='yn-btn'+(d.venta==='no'?' no':'');
+document.getElementById('frase').addEventListener('input', function() {
+  DATA[current].frase = this.value;
+  guardar(); mostrarGuardado();
 });
-document.getElementById('yn-no').addEventListener('click',function(){
-  var d=DATA[current];d.venta=d.venta==='no'?null:'no';
-  document.getElementById('yn-si').className='yn-btn'+(d.venta==='si'?' yes':'');
-  document.getElementById('yn-no').className='yn-btn'+(d.venta==='no'?' no':'');
+document.getElementById('yn-si').addEventListener('click', function() {
+  var d = DATA[current]; d.venta = d.venta === 'si' ? null : 'si';
+  document.getElementById('yn-si').className = 'yn-btn' + (d.venta === 'si' ? ' yes' : '');
+  document.getElementById('yn-no').className  = 'yn-btn' + (d.venta === 'no' ? ' no'  : '');
+  guardar(); mostrarGuardado();
 });
-var cchips=document.querySelectorAll('#cliente-group .chip');
-for(var i=0;i<cchips.length;i++){
-  cchips[i].addEventListener('click',function(){
-    var v=this.getAttribute('data-v'),arr=DATA[current].cliente,idx=arr.indexOf(v);
-    if(idx>-1){arr.splice(idx,1);this.className='chip';}else{arr.push(v);this.className='chip on';}
+document.getElementById('yn-no').addEventListener('click', function() {
+  var d = DATA[current]; d.venta = d.venta === 'no' ? null : 'no';
+  document.getElementById('yn-si').className = 'yn-btn' + (d.venta === 'si' ? ' yes' : '');
+  document.getElementById('yn-no').className  = 'yn-btn' + (d.venta === 'no' ? ' no'  : '');
+  guardar(); mostrarGuardado();
+});
+var cchips = document.querySelectorAll('#cliente-group .chip');
+for (var i = 0; i < cchips.length; i++) {
+  cchips[i].addEventListener('click', function() {
+    var v = this.getAttribute('data-v'), arr = DATA[current].cliente, idx = arr.indexOf(v);
+    if (idx > -1) { arr.splice(idx, 1); this.className = 'chip'; }
+    else { arr.push(v); this.className = 'chip on'; }
+    guardar(); mostrarGuardado();
   });
 }
-var uids=['u-siempre','u-reco','u-solo'];
-for(var i=0;i<uids.length;i++){
-  document.getElementById(uids[i]).addEventListener('click',function(){
-    var v=this.getAttribute('data-v'),d=DATA[current];
-    d.uso=d.uso===v?null:v;
-    for(var j=0;j<uids.length;j++){var b=document.getElementById(uids[j]);b.className='uso-btn'+(b.getAttribute('data-v')===d.uso?' on':'');}
+var uids = ['u-siempre','u-reco','u-solo'];
+for (var i = 0; i < uids.length; i++) {
+  document.getElementById(uids[i]).addEventListener('click', function() {
+    var v = this.getAttribute('data-v'), d = DATA[current];
+    d.uso = d.uso === v ? null : v;
+    for (var j = 0; j < uids.length; j++) {
+      var b = document.getElementById(uids[j]);
+      b.className = 'uso-btn' + (b.getAttribute('data-v') === d.uso ? ' on' : '');
+    }
+    guardar(); mostrarGuardado();
   });
 }
-var dvals=['fijo','prueba','descartado'];
-for(var i=0;i<dvals.length;i++){
-  document.getElementById('d-'+dvals[i]).addEventListener('click',function(){
-    var v=this.getAttribute('data-v'),d=DATA[current];
-    d.decision=d.decision===v?null:v;
-    for(var j=0;j<dvals.length;j++){var b=document.getElementById('d-'+dvals[j]);b.className='dec-btn'+(d.decision===dvals[j]?' '+dvals[j]:'');}
-    var msgs={fijo:'✅ Marcado como FIJO',prueba:'🤔 A prueba',descartado:'❌ Descartado'};
-    if(d.decision) toast(msgs[d.decision]);
+var dvals = ['fijo','prueba','descartado'];
+for (var i = 0; i < dvals.length; i++) {
+  document.getElementById('d-' + dvals[i]).addEventListener('click', function() {
+    var v = this.getAttribute('data-v'), d = DATA[current];
+    d.decision = d.decision === v ? null : v;
+    for (var j = 0; j < dvals.length; j++) {
+      var b = document.getElementById('d-' + dvals[j]);
+      b.className = 'dec-btn' + (d.decision === dvals[j] ? ' ' + dvals[j] : '');
+    }
+    guardar();
+    var msgs = { fijo:'✅ Marcado como FIJO', prueba:'🤔 A prueba', descartado:'❌ Descartado' };
+    if (d.decision) toast(msgs[d.decision]);
   });
 }
-document.getElementById('back-eval').addEventListener('click',function(){renderLista();show('s-list');});
-document.getElementById('back-resumen').addEventListener('click',function(){renderLista();show('s-list');});
-document.getElementById('btn-resumen').addEventListener('click',function(){renderResumen();show('s-resumen');});
+document.getElementById('back-eval').addEventListener('click', function() { renderLista(); show('s-list'); });
+document.getElementById('back-resumen').addEventListener('click', function() { renderLista(); show('s-list'); });
+document.getElementById('btn-resumen').addEventListener('click', function() { renderResumen(); show('s-resumen'); });
 
-function renderResumen(){
+function renderResumen() {
   var f=0,p=0,desc=0,pend=0;
-  for(var i=0;i<WINES.length;i++){var d=DATA[WINES[i].id].decision;if(d==='fijo')f++;else if(d==='prueba')p++;else if(d==='descartado')desc++;else pend++;}
-  document.getElementById('stats').innerHTML='<div class="stat-box"><div class="stat-n g">'+f+'</div><div class="stat-t">Fijos</div></div><div class="stat-box"><div class="stat-n y">'+p+'</div><div class="stat-t">Prueba</div></div><div class="stat-box"><div class="stat-n r">'+desc+'</div><div class="stat-t">Desc.</div></div><div class="stat-box"><div class="stat-n m">'+pend+'</div><div class="stat-t">Pend.</div></div>';
-  var el=document.getElementById('resumen-list');el.innerHTML='';
-  var grupos=[{key:'fijo',label:'✅ Fijos',icon:'✅'},{key:'prueba',label:'🤔 A prueba',icon:'🤔'},{key:'descartado',label:'❌ Descartados',icon:'❌'},{key:null,label:'· Pendientes',icon:'·'}];
-  for(var gi=0;gi<grupos.length;gi++){
-    (function(g){
-      var wines=[];
-      for(var i=0;i<WINES.length;i++) if(DATA[WINES[i].id].decision===g.key) wines.push(WINES[i]);
-      if(!wines.length) return;
-      var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent=g.label;el.appendChild(lbl);
-      var grp=document.createElement('div');grp.className='sum-group';
-      for(var i=0;i<wines.length;i++){
-        (function(w){
-          var d=DATA[w.id],cls=g.key||'none';
-          var card=document.createElement('div');card.className='sum-card';
-          card.innerHTML='<div class="sum-dot '+cls+'">'+g.icon+'</div><div class="sum-info"><div class="sum-name">'+w.name+'</div>'+(d.frase?'<div class="sum-frase">'+d.frase+'</div>':'')+'</div><div class="sum-badge '+cls+'">'+(g.key?g.key.toUpperCase():'—')+'</div>';
-          card.addEventListener('click',function(){abrirEval(w.id);});
+  for (var i = 0; i < WINES.length; i++) {
+    var d = DATA[WINES[i].id].decision;
+    if (d==='fijo') f++; else if (d==='prueba') p++; else if (d==='descartado') desc++; else pend++;
+  }
+  document.getElementById('stats').innerHTML =
+    '<div class="stat-box"><div class="stat-n g">'+f+'</div><div class="stat-t">Fijos</div></div>' +
+    '<div class="stat-box"><div class="stat-n y">'+p+'</div><div class="stat-t">Prueba</div></div>' +
+    '<div class="stat-box"><div class="stat-n r">'+desc+'</div><div class="stat-t">Desc.</div></div>' +
+    '<div class="stat-box"><div class="stat-n m">'+pend+'</div><div class="stat-t">Pend.</div></div>';
+  var el = document.getElementById('resumen-list'); el.innerHTML = '';
+  var grupos = [
+    { key:'fijo', label:'✅ Fijos', icon:'✅' },
+    { key:'prueba', label:'🤔 A prueba', icon:'🤔' },
+    { key:'descartado', label:'❌ Descartados', icon:'❌' },
+    { key:null, label:'· Pendientes', icon:'·' }
+  ];
+  for (var gi = 0; gi < grupos.length; gi++) {
+    (function(g) {
+      var wines = [];
+      for (var i = 0; i < WINES.length; i++) if (DATA[WINES[i].id].decision === g.key) wines.push(WINES[i]);
+      if (!wines.length) return;
+      var lbl = document.createElement('div'); lbl.className = 'lbl'; lbl.textContent = g.label; el.appendChild(lbl);
+      var grp = document.createElement('div'); grp.className = 'sum-group';
+      for (var i = 0; i < wines.length; i++) {
+        (function(w) {
+          var d = DATA[w.id], cls = g.key || 'none';
+          var card = document.createElement('div'); card.className = 'sum-card';
+          card.innerHTML =
+            '<div class="sum-dot '+cls+'">'+g.icon+'</div>' +
+            '<div class="sum-info">' +
+              '<div class="sum-name">'+w.name+'</div>' +
+              '<div class="sum-frase">'+d.frase+'</div>' +
+            '</div>' +
+            '<div class="sum-badge '+cls+'">'+(g.key ? g.key.toUpperCase() : '—')+'</div>';
+          card.addEventListener('click', function() { abrirEval(w.id); });
           grp.appendChild(card);
         })(wines[i]);
       }
       el.appendChild(grp);
     })(grupos[gi]);
   }
-  document.getElementById('resumen-scroll').scrollTop=0;
+  document.getElementById('resumen-scroll').scrollTop = 0;
 }
 
-document.getElementById('btn-reset').addEventListener('click',function(){
-  if(!confirm('¿Reiniciar toda la evaluación?')) return;
-  for(var i=0;i<WINES.length;i++) DATA[WINES[i].id]={perfil:null,frase:'',venta:null,cliente:[],uso:null,decision:null};
-  renderLista();show('s-list');toast('Evaluación reiniciada');
+document.getElementById('btn-reset').addEventListener('click', function() {
+  if (!confirm('¿Reiniciar toda la evaluación? Se restaurarán las frases originales.')) return;
+  for (var i = 0; i < WINES.length; i++) {
+    DATA[WINES[i].id] = { perfil:null, frase:WINES[i].frase, venta:null, cliente:[], uso:null, decision:null };
+  }
+  guardar(); renderLista(); show('s-list'); toast('Evaluación reiniciada');
 });
 
-var _tt=null;
-function toast(msg){
-  var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
-  if(_tt) clearTimeout(_tt);
-  _tt=setTimeout(function(){el.classList.remove('show');},2200);
+var _tt = null;
+function toast(msg) {
+  var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
+  if (_tt) clearTimeout(_tt);
+  _tt = setTimeout(function(){ el.classList.remove('show'); }, 2200);
 }
 
+cargar();
 renderLista();
 </script>
 </body>
