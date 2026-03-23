@@ -4,27 +4,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f0f0d">
 <title>Cáscaras · Vinos 2026</title>
 <style>
-:root{--bg:#0f0f0d;--card:#222220;--border:rgba(255,255,255,0.08);--gold:#c9a96e;--gold-dim:rgba(201,169,110,0.15);--green:#5a9e6f;--green-bg:rgba(74,124,89,0.18);--yellow:#c9a030;--yellow-bg:rgba(201,160,48,0.18);--red:#b05050;--red-bg:rgba(155,64,64,0.18);--text:#f0ece4;--muted:rgba(240,236,228,0.42);--serif:Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;--r:14px;--rs:10px}
+:root{
+  --bg:#0f0f0d;--card:#222220;--border:rgba(255,255,255,0.08);
+  --gold:#c9a96e;--gold-dim:rgba(201,169,110,0.15);
+  --green:#5a9e6f;--green-bg:rgba(74,124,89,0.18);
+  --yellow:#c9a030;--yellow-bg:rgba(201,160,48,0.18);
+  --red:#b05050;--red-bg:rgba(155,64,64,0.18);
+  --text:#f0ece4;--muted:rgba(240,236,228,0.42);
+  --serif:Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+  --r:14px;--rs:10px;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;-webkit-font-smoothing:antialiased}
-#app{height:100vh;display:flex;flex-direction:column;overflow:hidden}
-.screen{display:none;flex-direction:column;height:100%}
+
+/* ── CLAVE: html y body NO tienen overflow:hidden para que el scroll nativo funcione en Safari ── */
+html{height:100%}
+body{
+  font-family:var(--sans);background:var(--bg);color:var(--text);
+  font-size:15px;-webkit-font-smoothing:antialiased;
+  height:100%;overflow:hidden; /* overflow en body sí, para controlar el shell */
+}
+
+/* Shell principal ocupa toda la pantalla */
+#app{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* Cada pantalla ocupa el 100% del shell */
+.screen{display:none;flex-direction:column;position:absolute;inset:0}
 .screen.active{display:flex}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;padding-top:max(14px,env(safe-area-inset-top,14px));border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
+
+/* ── TOPBAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 12px;
+  padding-top:max(14px,env(safe-area-inset-top,14px));
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;background:var(--bg);
+  z-index:10;
+}
 .topbar-title{font-family:var(--serif);font-size:20px;font-style:italic;color:var(--text)}
 .topbar-title b{font-style:normal;color:var(--gold);font-weight:normal}
 .topbar-sub{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
 .btn-back{font-size:16px;color:var(--gold);background:none;border:none;padding:8px 0;font-family:var(--sans);cursor:pointer}
 .btn-resumen{font-size:13px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(201,169,110,0.3);border-radius:20px;padding:6px 14px;font-family:var(--sans);cursor:pointer}
 .logo{width:30px;height:30px;border-radius:7px;background:var(--gold-dim);border:1px solid rgba(201,169,110,0.2);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:16px;color:var(--gold);font-style:italic;flex-shrink:0}
-.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px;padding-bottom:max(24px,env(safe-area-inset-bottom,24px))}
+
+/* ── EVAL HEADER (fijo, no hace scroll) ── */
+.eval-hdr{
+  padding:14px 18px 12px;border-bottom:1px solid var(--border);
+  flex-shrink:0;background:var(--bg);
+}
+.eval-name{font-family:var(--serif);font-size:24px;font-style:italic;font-weight:normal;line-height:1.15}
+.eval-type{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+
+/* ── ÁREA SCROLL ── La clave: flex:1 + overflow-y:auto + padding inferior generoso ── */
+.scroll{
+  flex:1;
+  overflow-y:scroll;           /* scroll siempre activo */
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:14px 18px;
+  /* Padding inferior = espacio suficiente para que el último elemento quede visible */
+  padding-bottom:calc(max(32px, env(safe-area-inset-bottom, 32px)) + 24px);
+  min-height:0;               /* fix flex bug en Safari */
+}
 .scroll::-webkit-scrollbar{display:none}
+
+/* ── ELEMENTOS ── */
 .lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:9px;margin-top:20px;font-weight:600;opacity:.8}
 .lbl:first-child{margin-top:2px}
+
 .wine-grid{display:flex;flex-direction:column;gap:8px}
 .wine-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-user-select:none;user-select:none}
 .wine-card:active{opacity:.75}
@@ -37,27 +91,29 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 .ddot.prueba{background:var(--yellow-bg);border:1.5px solid rgba(201,160,48,.4)}
 .ddot.descartado{background:var(--red-bg);border:1.5px solid rgba(155,64,64,.4)}
 .chev{color:var(--muted);font-size:18px}
-.eval-hdr{padding:16px 18px 13px;border-bottom:1px solid var(--border);flex-shrink:0}
-.eval-name{font-family:var(--serif);font-size:25px;font-style:italic;font-weight:normal;line-height:1.15}
-.eval-type{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+
 .chip-group{display:flex;flex-wrap:wrap;gap:7px}
 .chip{padding:8px 14px;border-radius:40px;border:1.5px solid var(--border);background:rgba(255,255,255,0.03);font-size:14px;color:var(--muted);cursor:pointer;-webkit-user-select:none;user-select:none;font-family:var(--sans)}
 .chip:active{opacity:.65}
 .chip.on{background:var(--gold-dim);border-color:rgba(201,169,110,.55);color:var(--gold)}
+
 .frase{width:100%;background:rgba(201,169,110,0.07);border:1.5px solid rgba(201,169,110,0.35);border-radius:var(--rs);padding:13px 14px;font-size:15px;color:var(--text);font-family:var(--serif);font-style:italic;outline:none;-webkit-appearance:none;resize:none;line-height:1.5}
 .frase:focus{border-color:rgba(201,169,110,.65);background:rgba(201,169,110,0.1)}
 .frase-hint{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.02em;font-style:italic}
 .save-indicator{font-size:10px;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-top:5px;opacity:0;transition:opacity .3s;text-align:right}
 .save-indicator.show{opacity:1}
+
 .yn-group{display:flex;gap:9px}
 .yn-btn{flex:1;padding:14px;border-radius:var(--rs);border:1.5px solid var(--border);background:rgba(255,255,255,0.03);color:var(--muted);font-size:15px;font-weight:500;cursor:pointer;font-family:var(--sans);-webkit-user-select:none}
 .yn-btn:active{opacity:.65}
 .yn-btn.yes{background:var(--green-bg);border-color:rgba(90,158,111,.5);color:#7acc90}
 .yn-btn.no{background:var(--red-bg);border-color:rgba(155,64,64,.5);color:#d07070}
+
 .uso-group{display:flex;flex-direction:column;gap:7px}
 .uso-btn{padding:12px 15px;border-radius:var(--rs);border:1.5px solid var(--border);background:rgba(255,255,255,0.03);color:var(--muted);font-size:14px;text-align:left;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:10px;-webkit-user-select:none;width:100%}
 .uso-btn:active{opacity:.65}
 .uso-btn.on{background:var(--gold-dim);border-color:rgba(201,169,110,.4);color:var(--gold)}
+
 .dec-group{display:flex;gap:8px}
 .dec-btn{flex:1;padding:16px 6px;border-radius:var(--r);border:2px solid var(--border);background:rgba(255,255,255,0.03);color:var(--muted);font-size:11px;font-weight:700;text-align:center;cursor:pointer;font-family:var(--sans);display:flex;flex-direction:column;align-items:center;gap:5px;-webkit-user-select:none;letter-spacing:.05em;width:100%}
 .dec-btn:active{opacity:.65}
@@ -65,7 +121,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 .dec-btn.fijo{background:var(--green-bg);border-color:var(--green);color:#7acc90}
 .dec-btn.prueba{background:var(--yellow-bg);border-color:var(--yellow);color:#d4ad4a}
 .dec-btn.descartado{background:var(--red-bg);border-color:var(--red);color:#c06060}
+
 .divider{height:1px;background:var(--border);margin:20px 0}
+
+/* Resumen */
 .stats-row{display:flex;gap:8px;margin-bottom:16px}
 .stat-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:13px 6px;text-align:center}
 .stat-n{font-family:var(--serif);font-size:28px;font-style:italic;line-height:1}
@@ -85,29 +144,27 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 .sum-badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;flex-shrink:0}
 .sum-badge.fijo{color:var(--green)}.sum-badge.prueba{color:var(--yellow)}.sum-badge.descartado{color:var(--red)}.sum-badge.none{color:var(--muted)}
 
-/* ── NOMBRE EVALUADOR ── */
 .nombre-wrap{background:var(--card);border:1px solid rgba(201,169,110,0.25);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .nombre-wrap input{background:none;border:none;outline:none;font-size:15px;color:var(--text);font-family:var(--sans);flex:1;min-width:0}
 .nombre-wrap input::placeholder{color:var(--muted)}
 .nombre-label{font-size:11px;color:var(--gold);flex-shrink:0;letter-spacing:.05em}
 
-/* ── EXPORTAR ── */
 .btn-export{display:block;width:100%;margin-top:12px;padding:15px;background:rgba(201,169,110,0.12);border:1.5px solid rgba(201,169,110,0.4);border-radius:var(--rs);color:var(--gold);font-size:15px;font-family:var(--sans);text-align:center;cursor:pointer;font-weight:600;letter-spacing:.03em}
 .btn-export:active{opacity:.75}
+.btn-reset{display:block;width:100%;margin-top:10px;padding:13px;background:rgba(155,64,64,0.1);border:1.5px solid rgba(155,64,64,0.28);border-radius:var(--rs);color:#c06060;font-size:14px;font-family:var(--sans);text-align:center;cursor:pointer}
 
-/* ── MODAL EXPORTAR ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0)}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-end;justify-content:center}
 .modal-overlay.hidden{display:none}
 .modal{background:#1e1e1c;border-radius:20px 20px 0 0;padding:24px 20px;padding-bottom:max(32px,env(safe-area-inset-bottom,32px));width:100%;max-width:480px}
 .modal-title{font-family:var(--serif);font-size:18px;font-style:italic;color:var(--gold);margin-bottom:4px}
 .modal-sub{font-size:11px;color:var(--muted);margin-bottom:16px;letter-spacing:.03em}
-.modal-text{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);padding:14px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;font-family:var(--sans);max-height:280px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-text{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);padding:14px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;font-family:var(--sans);max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .modal-text::-webkit-scrollbar{display:none}
-.btn-copy{display:block;width:100%;margin-top:12px;padding:15px;background:var(--gold);border:none;border-radius:var(--rs);color:#0f0f0d;font-size:15px;font-family:var(--sans);font-weight:700;text-align:center;cursor:pointer;letter-spacing:.03em}
+.btn-copy{display:block;width:100%;margin-top:12px;padding:15px;background:var(--gold);border:none;border-radius:var(--rs);color:#0f0f0d;font-size:15px;font-family:var(--sans);font-weight:700;text-align:center;cursor:pointer}
 .btn-copy:active{opacity:.85}
 .btn-cerrar{display:block;width:100%;margin-top:8px;padding:13px;background:none;border:1px solid var(--border);border-radius:var(--rs);color:var(--muted);font-size:14px;font-family:var(--sans);text-align:center;cursor:pointer}
 
-.btn-reset{display:block;width:100%;margin-top:12px;padding:13px;background:rgba(155,64,64,0.1);border:1.5px solid rgba(155,64,64,0.28);border-radius:var(--rs);color:#c06060;font-size:14px;font-family:var(--sans);text-align:center;cursor:pointer}
 #toast{position:fixed;bottom:max(30px,env(safe-area-inset-bottom,30px));left:50%;transform:translateX(-50%) translateY(14px);background:rgba(30,30,28,0.97);border:1px solid var(--border);border-radius:40px;padding:10px 20px;font-size:13px;color:var(--text);opacity:0;pointer-events:none;white-space:nowrap;z-index:999;transition:opacity .2s,transform .2s}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
@@ -127,9 +184,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
         <div class="logo">C</div>
       </div>
     </div>
-    <div class="scroll">
+    <div class="scroll" id="list-scroll">
       <div class="lbl">Vinos a evaluar</div>
       <div class="wine-grid" id="wine-list"></div>
+      <!-- espacio extra al final para que el último vino sea visible -->
+      <div style="height:20px"></div>
     </div>
   </div>
 
@@ -181,7 +240,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
         <button class="dec-btn" id="d-prueba" data-v="prueba"><span class="dec-icon">🤔</span>PRUEBA</button>
         <button class="dec-btn" id="d-descartado" data-v="descartado"><span class="dec-icon">❌</span>DESCARTADO</button>
       </div>
-      <div style="height:32px"></div>
+      <!-- espacio extra generoso al final para que la decisión quede visible -->
+      <div style="height:48px"></div>
     </div>
   </div>
 
@@ -192,27 +252,22 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
       <div class="topbar-title" style="font-style:italic;font-size:18px;">Resumen</div>
     </div>
     <div class="scroll" id="resumen-scroll">
-
-      <!-- Nombre evaluador -->
       <div class="lbl">¿Quién evalúa?</div>
       <div class="nombre-wrap">
         <span class="nombre-label">👤</span>
         <input type="text" id="nombre-input" placeholder="Tu nombre (ej: Eduardo)" maxlength="30">
       </div>
-
-      <div class="stats-row" id="stats"></div>
+      <div class="stats-row" id="stats" style="margin-top:16px"></div>
       <div id="resumen-list"></div>
-
-      <!-- Exportar -->
       <button class="btn-export" id="btn-export">📤 Exportar para WhatsApp</button>
       <button class="btn-reset" id="btn-reset">Reiniciar evaluación</button>
-      <div style="height:24px"></div>
+      <div style="height:20px"></div>
     </div>
   </div>
 
 </div>
 
-<!-- MODAL EXPORTAR -->
+<!-- MODAL -->
 <div class="modal-overlay hidden" id="modal-overlay">
   <div class="modal">
     <div class="modal-title">Listo para compartir</div>
@@ -222,7 +277,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
     <button class="btn-cerrar" id="btn-cerrar">Cerrar</button>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
@@ -233,7 +287,7 @@ var WINES = [
   { id:'leza-gra',  name:'Leza García Graciano', type:'Tinto · Rioja',          frase:'Es un Rioja con más carácter, para quien quiere algo distinto' },
   { id:'leza-nar',  name:'Leza García Naranja',  type:'Blanco Naranja · Rioja', frase:'Es un vino muy diferente, para quien quiere probar algo especial' },
   { id:'leza-nube', name:'Leza García Nube',     type:'Semidulce · Rioja',      frase:'Es un vino suave y fácil, entra muy bien' },
-  { id:'lecea',     name:'Lecea Semidulce',      type:'Semidulce · Rioja',      frase:'Es un semidulce más clásico, muy agradable y fácil de beber' },
+  { id:'lecea',     name:'Lecea Semidulce',       type:'Semidulce · Rioja',      frase:'Es un semidulce más clásico, muy agradable y fácil de beber' },
   { id:'sancha',    name:'Juan Carlos Sancha',   type:'Blanco · Rioja',         frase:'Es un blanco con más cuerpo, perfecto para acompañar la comida' },
   { id:'arizcuren', name:'Arizcuren',            type:'Tinto · Rioja',          frase:'Es una garnacha con más carácter, muy buena para carne' }
 ];
@@ -244,307 +298,224 @@ var current = null;
 var nombre = '';
 
 function guardar() {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ data: DATA, nombre: nombre }));
-  } catch(e) {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ data:DATA, nombre:nombre })); } catch(e) {}
 }
 function cargar() {
   try {
     var raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      var parsed = JSON.parse(raw);
-      if (parsed.data) {
-        for (var i = 0; i < WINES.length; i++) {
-          if (parsed.data[WINES[i].id]) DATA[WINES[i].id] = parsed.data[WINES[i].id];
-        }
-      }
-      if (parsed.nombre) {
-        nombre = parsed.nombre;
-        document.getElementById('nombre-input').value = nombre;
-      }
+      var p = JSON.parse(raw);
+      if (p.data) for (var i=0;i<WINES.length;i++) if (p.data[WINES[i].id]) DATA[WINES[i].id]=p.data[WINES[i].id];
+      if (p.nombre) { nombre=p.nombre; document.getElementById('nombre-input').value=nombre; }
     }
   } catch(e) {}
-  for (var i = 0; i < WINES.length; i++) {
-    if (!DATA[WINES[i].id]) {
-      DATA[WINES[i].id] = { perfil:null, frase:WINES[i].frase, venta:null, cliente:[], uso:null, decision:null };
-    }
+  for (var i=0;i<WINES.length;i++) {
+    if (!DATA[WINES[i].id]) DATA[WINES[i].id]={perfil:null,frase:WINES[i].frase,venta:null,cliente:[],uso:null,decision:null};
   }
 }
 
-// Nombre
-document.getElementById('nombre-input').addEventListener('input', function() {
-  nombre = this.value;
-  guardar();
-});
+document.getElementById('nombre-input').addEventListener('input',function(){ nombre=this.value; guardar(); });
 
-var _saveTimer = null;
-function mostrarGuardado() {
-  var el = document.getElementById('save-ind');
-  el.classList.add('show');
-  if (_saveTimer) clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(function(){ el.classList.remove('show'); }, 1500);
+var _st=null;
+function mostrarGuardado(){
+  var el=document.getElementById('save-ind'); el.classList.add('show');
+  if(_st) clearTimeout(_st);
+  _st=setTimeout(function(){el.classList.remove('show');},1500);
 }
 
-function show(id) {
-  var all = document.querySelectorAll('.screen');
-  for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
+function show(id){
+  var all=document.querySelectorAll('.screen');
+  for(var i=0;i<all.length;i++) all[i].classList.remove('active');
   document.getElementById(id).classList.add('active');
 }
 
-function renderLista() {
-  var el = document.getElementById('wine-list');
-  el.innerHTML = '';
-  for (var i = 0; i < WINES.length; i++) {
-    (function(w) {
-      var d = DATA[w.id].decision;
-      var icon = '·', cls = 'none';
-      if (d === 'fijo')       { icon = '✅'; cls = 'fijo'; }
-      if (d === 'prueba')     { icon = '🤔'; cls = 'prueba'; }
-      if (d === 'descartado') { icon = '❌'; cls = 'descartado'; }
-      var c = document.createElement('div');
-      c.className = 'wine-card';
-      c.innerHTML =
-        '<div style="min-width:0;flex:1">' +
-          '<div class="wine-name">' + w.name + '</div>' +
-          '<div class="wine-type">' + w.type + '</div>' +
-        '</div>' +
-        '<div class="card-right">' +
-          '<div class="ddot ' + cls + '">' + icon + '</div>' +
-          '<span class="chev">›</span>' +
-        '</div>';
-      c.addEventListener('click', function() { abrirEval(w.id); });
+function renderLista(){
+  var el=document.getElementById('wine-list'); el.innerHTML='';
+  for(var i=0;i<WINES.length;i++){
+    (function(w){
+      var d=DATA[w.id].decision,icon='·',cls='none';
+      if(d==='fijo'){icon='✅';cls='fijo';}
+      if(d==='prueba'){icon='🤔';cls='prueba';}
+      if(d==='descartado'){icon='❌';cls='descartado';}
+      var c=document.createElement('div'); c.className='wine-card';
+      c.innerHTML='<div style="min-width:0;flex:1"><div class="wine-name">'+w.name+'</div><div class="wine-type">'+w.type+'</div></div><div class="card-right"><div class="ddot '+cls+'">'+icon+'</div><span class="chev">›</span></div>';
+      c.addEventListener('click',function(){abrirEval(w.id);});
       el.appendChild(c);
     })(WINES[i]);
   }
+  // Volver al top de la lista
+  document.getElementById('list-scroll').scrollTop=0;
 }
 
-function abrirEval(id) {
-  current = id;
-  var w = null;
-  for (var i = 0; i < WINES.length; i++) { if (WINES[i].id === id) { w = WINES[i]; break; } }
-  var d = DATA[id];
-  document.getElementById('e-name').textContent = w.name;
-  document.getElementById('e-type').textContent = w.type;
-  document.getElementById('frase').value = d.frase;
+function abrirEval(id){
+  current=id;
+  var w=null; for(var i=0;i<WINES.length;i++){if(WINES[i].id===id){w=WINES[i];break;}}
+  var d=DATA[id];
+  document.getElementById('e-name').textContent=w.name;
+  document.getElementById('e-type').textContent=w.type;
+  document.getElementById('frase').value=d.frase;
   document.getElementById('save-ind').classList.remove('show');
-  var pchips = document.querySelectorAll('#perfil-group .chip');
-  for (var i = 0; i < pchips.length; i++)
-    pchips[i].className = 'chip' + (pchips[i].getAttribute('data-v') === d.perfil ? ' on' : '');
-  document.getElementById('yn-si').className = 'yn-btn' + (d.venta === 'si' ? ' yes' : '');
-  document.getElementById('yn-no').className  = 'yn-btn' + (d.venta === 'no' ? ' no'  : '');
-  var cchips = document.querySelectorAll('#cliente-group .chip');
-  for (var i = 0; i < cchips.length; i++)
-    cchips[i].className = 'chip' + (d.cliente.indexOf(cchips[i].getAttribute('data-v')) > -1 ? ' on' : '');
-  var ubtns = ['u-siempre','u-reco','u-solo'];
-  for (var i = 0; i < ubtns.length; i++) {
-    var b = document.getElementById(ubtns[i]);
-    b.className = 'uso-btn' + (b.getAttribute('data-v') === d.uso ? ' on' : '');
-  }
-  var dbtns = ['fijo','prueba','descartado'];
-  for (var i = 0; i < dbtns.length; i++) {
-    var b = document.getElementById('d-' + dbtns[i]);
-    b.className = 'dec-btn' + (d.decision === dbtns[i] ? ' ' + dbtns[i] : '');
-  }
-  document.getElementById('eval-scroll').scrollTop = 0;
+  var pc=document.querySelectorAll('#perfil-group .chip');
+  for(var i=0;i<pc.length;i++) pc[i].className='chip'+(pc[i].getAttribute('data-v')===d.perfil?' on':'');
+  document.getElementById('yn-si').className='yn-btn'+(d.venta==='si'?' yes':'');
+  document.getElementById('yn-no').className='yn-btn'+(d.venta==='no'?' no':'');
+  var cc=document.querySelectorAll('#cliente-group .chip');
+  for(var i=0;i<cc.length;i++) cc[i].className='chip'+(d.cliente.indexOf(cc[i].getAttribute('data-v'))>-1?' on':'');
+  var ub=['u-siempre','u-reco','u-solo'];
+  for(var i=0;i<ub.length;i++){var b=document.getElementById(ub[i]);b.className='uso-btn'+(b.getAttribute('data-v')===d.uso?' on':'');}
+  var db=['fijo','prueba','descartado'];
+  for(var i=0;i<db.length;i++){var b=document.getElementById('d-'+db[i]);b.className='dec-btn'+(d.decision===db[i]?' '+db[i]:'');}
+  // Siempre volver al top de la ficha
+  document.getElementById('eval-scroll').scrollTop=0;
   show('s-eval');
 }
 
-var pchips = document.querySelectorAll('#perfil-group .chip');
-for (var i = 0; i < pchips.length; i++) {
-  pchips[i].addEventListener('click', function() {
-    var v = this.getAttribute('data-v'), d = DATA[current];
-    d.perfil = d.perfil === v ? null : v;
-    var all = document.querySelectorAll('#perfil-group .chip');
-    for (var j = 0; j < all.length; j++)
-      all[j].className = 'chip' + (all[j].getAttribute('data-v') === d.perfil ? ' on' : '');
+// Perfil
+var pc=document.querySelectorAll('#perfil-group .chip');
+for(var i=0;i<pc.length;i++){
+  pc[i].addEventListener('click',function(){
+    var v=this.getAttribute('data-v'),d=DATA[current];
+    d.perfil=d.perfil===v?null:v;
+    var all=document.querySelectorAll('#perfil-group .chip');
+    for(var j=0;j<all.length;j++) all[j].className='chip'+(all[j].getAttribute('data-v')===d.perfil?' on':'');
     guardar(); mostrarGuardado();
   });
 }
-document.getElementById('frase').addEventListener('input', function() {
-  DATA[current].frase = this.value; guardar(); mostrarGuardado();
+document.getElementById('frase').addEventListener('input',function(){DATA[current].frase=this.value;guardar();mostrarGuardado();});
+document.getElementById('yn-si').addEventListener('click',function(){
+  var d=DATA[current];d.venta=d.venta==='si'?null:'si';
+  document.getElementById('yn-si').className='yn-btn'+(d.venta==='si'?' yes':'');
+  document.getElementById('yn-no').className='yn-btn'+(d.venta==='no'?' no':'');
+  guardar();mostrarGuardado();
 });
-document.getElementById('yn-si').addEventListener('click', function() {
-  var d = DATA[current]; d.venta = d.venta === 'si' ? null : 'si';
-  document.getElementById('yn-si').className = 'yn-btn' + (d.venta === 'si' ? ' yes' : '');
-  document.getElementById('yn-no').className  = 'yn-btn' + (d.venta === 'no' ? ' no'  : '');
-  guardar(); mostrarGuardado();
+document.getElementById('yn-no').addEventListener('click',function(){
+  var d=DATA[current];d.venta=d.venta==='no'?null:'no';
+  document.getElementById('yn-si').className='yn-btn'+(d.venta==='si'?' yes':'');
+  document.getElementById('yn-no').className='yn-btn'+(d.venta==='no'?' no':'');
+  guardar();mostrarGuardado();
 });
-document.getElementById('yn-no').addEventListener('click', function() {
-  var d = DATA[current]; d.venta = d.venta === 'no' ? null : 'no';
-  document.getElementById('yn-si').className = 'yn-btn' + (d.venta === 'si' ? ' yes' : '');
-  document.getElementById('yn-no').className  = 'yn-btn' + (d.venta === 'no' ? ' no'  : '');
-  guardar(); mostrarGuardado();
-});
-var cchips = document.querySelectorAll('#cliente-group .chip');
-for (var i = 0; i < cchips.length; i++) {
-  cchips[i].addEventListener('click', function() {
-    var v = this.getAttribute('data-v'), arr = DATA[current].cliente, idx = arr.indexOf(v);
-    if (idx > -1) { arr.splice(idx, 1); this.className = 'chip'; }
-    else { arr.push(v); this.className = 'chip on'; }
-    guardar(); mostrarGuardado();
+var cc=document.querySelectorAll('#cliente-group .chip');
+for(var i=0;i<cc.length;i++){
+  cc[i].addEventListener('click',function(){
+    var v=this.getAttribute('data-v'),arr=DATA[current].cliente,idx=arr.indexOf(v);
+    if(idx>-1){arr.splice(idx,1);this.className='chip';}else{arr.push(v);this.className='chip on';}
+    guardar();mostrarGuardado();
   });
 }
-var uids = ['u-siempre','u-reco','u-solo'];
-for (var i = 0; i < uids.length; i++) {
-  document.getElementById(uids[i]).addEventListener('click', function() {
-    var v = this.getAttribute('data-v'), d = DATA[current];
-    d.uso = d.uso === v ? null : v;
-    for (var j = 0; j < uids.length; j++) {
-      var b = document.getElementById(uids[j]);
-      b.className = 'uso-btn' + (b.getAttribute('data-v') === d.uso ? ' on' : '');
-    }
-    guardar(); mostrarGuardado();
+var uids=['u-siempre','u-reco','u-solo'];
+for(var i=0;i<uids.length;i++){
+  document.getElementById(uids[i]).addEventListener('click',function(){
+    var v=this.getAttribute('data-v'),d=DATA[current];
+    d.uso=d.uso===v?null:v;
+    for(var j=0;j<uids.length;j++){var b=document.getElementById(uids[j]);b.className='uso-btn'+(b.getAttribute('data-v')===d.uso?' on':'');}
+    guardar();mostrarGuardado();
   });
 }
-var dvals = ['fijo','prueba','descartado'];
-for (var i = 0; i < dvals.length; i++) {
-  document.getElementById('d-' + dvals[i]).addEventListener('click', function() {
-    var v = this.getAttribute('data-v'), d = DATA[current];
-    d.decision = d.decision === v ? null : v;
-    for (var j = 0; j < dvals.length; j++) {
-      var b = document.getElementById('d-' + dvals[j]);
-      b.className = 'dec-btn' + (d.decision === dvals[j] ? ' ' + dvals[j] : '');
-    }
+var dvals=['fijo','prueba','descartado'];
+for(var i=0;i<dvals.length;i++){
+  document.getElementById('d-'+dvals[i]).addEventListener('click',function(){
+    var v=this.getAttribute('data-v'),d=DATA[current];
+    d.decision=d.decision===v?null:v;
+    for(var j=0;j<dvals.length;j++){var b=document.getElementById('d-'+dvals[j]);b.className='dec-btn'+(d.decision===dvals[j]?' '+dvals[j]:'');}
     guardar();
-    var msgs = { fijo:'✅ Marcado como FIJO', prueba:'🤔 A prueba', descartado:'❌ Descartado' };
-    if (d.decision) toast(msgs[d.decision]);
+    var msgs={fijo:'✅ Marcado como FIJO',prueba:'🤔 A prueba',descartado:'❌ Descartado'};
+    if(d.decision) toast(msgs[d.decision]);
   });
 }
 
-document.getElementById('back-eval').addEventListener('click', function() { renderLista(); show('s-list'); });
-document.getElementById('back-resumen').addEventListener('click', function() { renderLista(); show('s-list'); });
-document.getElementById('btn-resumen').addEventListener('click', function() { renderResumen(); show('s-resumen'); });
+document.getElementById('back-eval').addEventListener('click',function(){renderLista();show('s-list');});
+document.getElementById('back-resumen').addEventListener('click',function(){renderLista();show('s-list');});
+document.getElementById('btn-resumen').addEventListener('click',function(){renderResumen();show('s-resumen');});
 
-function renderResumen() {
+function renderResumen(){
   var f=0,p=0,desc=0,pend=0;
-  for (var i = 0; i < WINES.length; i++) {
-    var d = DATA[WINES[i].id].decision;
-    if (d==='fijo') f++; else if (d==='prueba') p++; else if (d==='descartado') desc++; else pend++;
-  }
-  document.getElementById('stats').innerHTML =
-    '<div class="stat-box"><div class="stat-n g">'+f+'</div><div class="stat-t">Fijos</div></div>' +
-    '<div class="stat-box"><div class="stat-n y">'+p+'</div><div class="stat-t">Prueba</div></div>' +
-    '<div class="stat-box"><div class="stat-n r">'+desc+'</div><div class="stat-t">Desc.</div></div>' +
+  for(var i=0;i<WINES.length;i++){var d=DATA[WINES[i].id].decision;if(d==='fijo')f++;else if(d==='prueba')p++;else if(d==='descartado')desc++;else pend++;}
+  document.getElementById('stats').innerHTML=
+    '<div class="stat-box"><div class="stat-n g">'+f+'</div><div class="stat-t">Fijos</div></div>'+
+    '<div class="stat-box"><div class="stat-n y">'+p+'</div><div class="stat-t">Prueba</div></div>'+
+    '<div class="stat-box"><div class="stat-n r">'+desc+'</div><div class="stat-t">Desc.</div></div>'+
     '<div class="stat-box"><div class="stat-n m">'+pend+'</div><div class="stat-t">Pend.</div></div>';
-  var el = document.getElementById('resumen-list'); el.innerHTML = '';
-  var grupos = [
-    { key:'fijo', label:'✅ Fijos', icon:'✅' },
-    { key:'prueba', label:'🤔 A prueba', icon:'🤔' },
-    { key:'descartado', label:'❌ Descartados', icon:'❌' },
-    { key:null, label:'· Pendientes', icon:'·' }
-  ];
-  for (var gi = 0; gi < grupos.length; gi++) {
-    (function(g) {
-      var wines = [];
-      for (var i = 0; i < WINES.length; i++) if (DATA[WINES[i].id].decision === g.key) wines.push(WINES[i]);
-      if (!wines.length) return;
-      var lbl = document.createElement('div'); lbl.className = 'lbl'; lbl.textContent = g.label; el.appendChild(lbl);
-      var grp = document.createElement('div'); grp.className = 'sum-group';
-      for (var i = 0; i < wines.length; i++) {
-        (function(w) {
-          var d = DATA[w.id], cls = g.key || 'none';
-          var card = document.createElement('div'); card.className = 'sum-card';
-          card.innerHTML =
-            '<div class="sum-dot '+cls+'">'+g.icon+'</div>' +
-            '<div class="sum-info"><div class="sum-name">'+w.name+'</div><div class="sum-frase">'+d.frase+'</div></div>' +
-            '<div class="sum-badge '+cls+'">'+(g.key ? g.key.toUpperCase() : '—')+'</div>';
-          card.addEventListener('click', function() { abrirEval(w.id); });
+  var el=document.getElementById('resumen-list'); el.innerHTML='';
+  var grupos=[{key:'fijo',label:'✅ Fijos',icon:'✅'},{key:'prueba',label:'🤔 A prueba',icon:'🤔'},{key:'descartado',label:'❌ Descartados',icon:'❌'},{key:null,label:'· Pendientes',icon:'·'}];
+  for(var gi=0;gi<grupos.length;gi++){
+    (function(g){
+      var wines=[];
+      for(var i=0;i<WINES.length;i++) if(DATA[WINES[i].id].decision===g.key) wines.push(WINES[i]);
+      if(!wines.length) return;
+      var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent=g.label;el.appendChild(lbl);
+      var grp=document.createElement('div');grp.className='sum-group';
+      for(var i=0;i<wines.length;i++){
+        (function(w){
+          var d=DATA[w.id],cls=g.key||'none';
+          var card=document.createElement('div');card.className='sum-card';
+          card.innerHTML='<div class="sum-dot '+cls+'">'+g.icon+'</div><div class="sum-info"><div class="sum-name">'+w.name+'</div><div class="sum-frase">'+d.frase+'</div></div><div class="sum-badge '+cls+'">'+(g.key?g.key.toUpperCase():'—')+'</div>';
+          card.addEventListener('click',function(){abrirEval(w.id);});
           grp.appendChild(card);
         })(wines[i]);
       }
       el.appendChild(grp);
     })(grupos[gi]);
   }
-  document.getElementById('resumen-scroll').scrollTop = 0;
+  document.getElementById('resumen-scroll').scrollTop=0;
 }
 
-// ── EXPORTAR ──────────────────────────────────────────────────────
-function generarTexto() {
-  var quien = nombre || 'Sin nombre';
-  var fecha = new Date();
-  var fechaStr = fecha.getDate() + '/' + (fecha.getMonth()+1) + '/' + fecha.getFullYear();
-  var lineas = [];
-  lineas.push('🍷 Cáscaras · Salón de Vinos 2026');
-  lineas.push('👤 ' + quien + ' · ' + fechaStr);
-  lineas.push('─────────────────');
-
-  var grupos = [
-    { key:'fijo',       label:'✅ FIJOS EN CARTA' },
-    { key:'prueba',     label:'🤔 A PRUEBA' },
-    { key:'descartado', label:'❌ DESCARTADOS' },
-    { key:null,         label:'· PENDIENTES' }
-  ];
-  for (var gi = 0; gi < grupos.length; gi++) {
-    var g = grupos[gi];
-    var wines = [];
-    for (var i = 0; i < WINES.length; i++) if (DATA[WINES[i].id].decision === g.key) wines.push(WINES[i]);
-    if (!wines.length) continue;
-    lineas.push('');
-    lineas.push(g.label);
-    for (var i = 0; i < wines.length; i++) {
-      var w = wines[i];
-      var d = DATA[w.id];
-      var venta = d.venta === 'si' ? ' · se vende fácil' : (d.venta === 'no' ? ' · difícil de vender' : '');
-      lineas.push('  ' + w.name + venta);
-      if (d.frase) lineas.push('  "' + d.frase + '"');
+function generarTexto(){
+  var quien=nombre||'Sin nombre';
+  var fecha=new Date();
+  var fd=fecha.getDate()+'/'+(fecha.getMonth()+1)+'/'+fecha.getFullYear();
+  var l=[];
+  l.push('🍷 Cáscaras · Salón de Vinos 2026');
+  l.push('👤 '+quien+' · '+fd);
+  l.push('─────────────────');
+  var grupos=[{key:'fijo',label:'✅ FIJOS EN CARTA'},{key:'prueba',label:'🤔 A PRUEBA'},{key:'descartado',label:'❌ DESCARTADOS'},{key:null,label:'· PENDIENTES'}];
+  for(var gi=0;gi<grupos.length;gi++){
+    var g=grupos[gi],wines=[];
+    for(var i=0;i<WINES.length;i++) if(DATA[WINES[i].id].decision===g.key) wines.push(WINES[i]);
+    if(!wines.length) continue;
+    l.push(''); l.push(g.label);
+    for(var i=0;i<wines.length;i++){
+      var w=wines[i],d=DATA[w.id];
+      var venta=d.venta==='si'?' · se vende fácil':(d.venta==='no'?' · difícil de vender':'');
+      l.push('  '+w.name+venta);
+      if(d.frase) l.push('  "'+d.frase+'"');
     }
   }
-  lineas.push('');
-  lineas.push('─────────────────');
-  lineas.push('espaciocascaras-afk.github.io/vino');
-  return lineas.join('\n');
+  l.push(''); l.push('─────────────────');
+  l.push('espaciocascaras-afk.github.io/vino');
+  return l.join('\n');
 }
 
-document.getElementById('btn-export').addEventListener('click', function() {
-  var texto = generarTexto();
-  document.getElementById('modal-text').textContent = texto;
+document.getElementById('btn-export').addEventListener('click',function(){
+  document.getElementById('modal-text').textContent=generarTexto();
   document.getElementById('modal-overlay').classList.remove('hidden');
 });
-
-document.getElementById('btn-cerrar').addEventListener('click', function() {
-  document.getElementById('modal-overlay').classList.add('hidden');
-});
-
-document.getElementById('modal-overlay').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.add('hidden');
-});
-
-document.getElementById('btn-copy').addEventListener('click', function() {
-  var texto = document.getElementById('modal-text').textContent;
-  try {
-    navigator.clipboard.writeText(texto).then(function() {
-      toast('✓ Copiado — pégalo en WhatsApp');
-    });
-  } catch(e) {
-    // fallback para Safari
-    var ta = document.createElement('textarea');
-    ta.value = texto;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.focus(); ta.select();
-    try { document.execCommand('copy'); toast('✓ Copiado — pégalo en WhatsApp'); } catch(e2) {}
+document.getElementById('btn-cerrar').addEventListener('click',function(){document.getElementById('modal-overlay').classList.add('hidden');});
+document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden');});
+document.getElementById('btn-copy').addEventListener('click',function(){
+  var texto=document.getElementById('modal-text').textContent;
+  try{
+    navigator.clipboard.writeText(texto).then(function(){toast('✓ Copiado — pégalo en WhatsApp');});
+  }catch(e){
+    var ta=document.createElement('textarea');ta.value=texto;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    try{document.execCommand('copy');toast('✓ Copiado — pégalo en WhatsApp');}catch(e2){}
     document.body.removeChild(ta);
   }
 });
 
-// ── RESET ─────────────────────────────────────────────────────────
-document.getElementById('btn-reset').addEventListener('click', function() {
-  if (!confirm('¿Reiniciar toda la evaluación? Se restaurarán las frases originales.')) return;
-  for (var i = 0; i < WINES.length; i++)
-    DATA[WINES[i].id] = { perfil:null, frase:WINES[i].frase, venta:null, cliente:[], uso:null, decision:null };
-  guardar(); renderLista(); show('s-list'); toast('Evaluación reiniciada');
+document.getElementById('btn-reset').addEventListener('click',function(){
+  if(!confirm('¿Reiniciar toda la evaluación?')) return;
+  for(var i=0;i<WINES.length;i++) DATA[WINES[i].id]={perfil:null,frase:WINES[i].frase,venta:null,cliente:[],uso:null,decision:null};
+  guardar();renderLista();show('s-list');toast('Evaluación reiniciada');
 });
 
-// ── TOAST ─────────────────────────────────────────────────────────
-var _tt = null;
-function toast(msg) {
-  var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
-  if (_tt) clearTimeout(_tt);
-  _tt = setTimeout(function(){ el.classList.remove('show'); }, 2500);
+var _tt=null;
+function toast(msg){
+  var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  if(_tt) clearTimeout(_tt);
+  _tt=setTimeout(function(){el.classList.remove('show');},2500);
 }
 
-// ── INIT ──────────────────────────────────────────────────────────
 cargar();
 renderLista();
 </script>
