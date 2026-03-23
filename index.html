@@ -44,7 +44,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 .chip{padding:8px 14px;border-radius:40px;border:1.5px solid var(--border);background:rgba(255,255,255,0.03);font-size:14px;color:var(--muted);cursor:pointer;-webkit-user-select:none;user-select:none;font-family:var(--sans)}
 .chip:active{opacity:.65}
 .chip.on{background:var(--gold-dim);border-color:rgba(201,169,110,.55);color:var(--gold)}
-/* ── FRASE DE SALA ── */
 .frase{width:100%;background:rgba(201,169,110,0.07);border:1.5px solid rgba(201,169,110,0.35);border-radius:var(--rs);padding:13px 14px;font-size:15px;color:var(--text);font-family:var(--serif);font-style:italic;outline:none;-webkit-appearance:none;resize:none;line-height:1.5}
 .frase:focus{border-color:rgba(201,169,110,.65);background:rgba(201,169,110,0.1)}
 .frase-hint{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.02em;font-style:italic}
@@ -85,7 +84,30 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 .sum-frase{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic}
 .sum-badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;flex-shrink:0}
 .sum-badge.fijo{color:var(--green)}.sum-badge.prueba{color:var(--yellow)}.sum-badge.descartado{color:var(--red)}.sum-badge.none{color:var(--muted)}
-.btn-reset{display:block;width:100%;margin-top:20px;padding:13px;background:rgba(155,64,64,0.1);border:1.5px solid rgba(155,64,64,0.28);border-radius:var(--rs);color:#c06060;font-size:14px;font-family:var(--sans);text-align:center;cursor:pointer}
+
+/* ── NOMBRE EVALUADOR ── */
+.nombre-wrap{background:var(--card);border:1px solid rgba(201,169,110,0.25);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.nombre-wrap input{background:none;border:none;outline:none;font-size:15px;color:var(--text);font-family:var(--sans);flex:1;min-width:0}
+.nombre-wrap input::placeholder{color:var(--muted)}
+.nombre-label{font-size:11px;color:var(--gold);flex-shrink:0;letter-spacing:.05em}
+
+/* ── EXPORTAR ── */
+.btn-export{display:block;width:100%;margin-top:12px;padding:15px;background:rgba(201,169,110,0.12);border:1.5px solid rgba(201,169,110,0.4);border-radius:var(--rs);color:var(--gold);font-size:15px;font-family:var(--sans);text-align:center;cursor:pointer;font-weight:600;letter-spacing:.03em}
+.btn-export:active{opacity:.75}
+
+/* ── MODAL EXPORTAR ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0)}
+.modal-overlay.hidden{display:none}
+.modal{background:#1e1e1c;border-radius:20px 20px 0 0;padding:24px 20px;padding-bottom:max(32px,env(safe-area-inset-bottom,32px));width:100%;max-width:480px}
+.modal-title{font-family:var(--serif);font-size:18px;font-style:italic;color:var(--gold);margin-bottom:4px}
+.modal-sub{font-size:11px;color:var(--muted);margin-bottom:16px;letter-spacing:.03em}
+.modal-text{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--rs);padding:14px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;font-family:var(--sans);max-height:280px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-text::-webkit-scrollbar{display:none}
+.btn-copy{display:block;width:100%;margin-top:12px;padding:15px;background:var(--gold);border:none;border-radius:var(--rs);color:#0f0f0d;font-size:15px;font-family:var(--sans);font-weight:700;text-align:center;cursor:pointer;letter-spacing:.03em}
+.btn-copy:active{opacity:.85}
+.btn-cerrar{display:block;width:100%;margin-top:8px;padding:13px;background:none;border:1px solid var(--border);border-radius:var(--rs);color:var(--muted);font-size:14px;font-family:var(--sans);text-align:center;cursor:pointer}
+
+.btn-reset{display:block;width:100%;margin-top:12px;padding:13px;background:rgba(155,64,64,0.1);border:1.5px solid rgba(155,64,64,0.28);border-radius:var(--rs);color:#c06060;font-size:14px;font-family:var(--sans);text-align:center;cursor:pointer}
 #toast{position:fixed;bottom:max(30px,env(safe-area-inset-bottom,30px));left:50%;transform:translateX(-50%) translateY(14px);background:rgba(30,30,28,0.97);border:1px solid var(--border);border-radius:40px;padding:10px 20px;font-size:13px;color:var(--text);opacity:0;pointer-events:none;white-space:nowrap;z-index:999;transition:opacity .2s,transform .2s}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
@@ -93,6 +115,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
 <body>
 <div id="app">
 
+  <!-- LISTA -->
   <div class="screen active" id="s-list">
     <div class="topbar">
       <div>
@@ -110,6 +133,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
     </div>
   </div>
 
+  <!-- EVALUACIÓN -->
   <div class="screen" id="s-eval">
     <div class="topbar">
       <button class="btn-back" id="back-eval">‹ Vinos</button>
@@ -161,20 +185,44 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15
     </div>
   </div>
 
+  <!-- RESUMEN -->
   <div class="screen" id="s-resumen">
     <div class="topbar">
       <button class="btn-back" id="back-resumen">‹ Vinos</button>
       <div class="topbar-title" style="font-style:italic;font-size:18px;">Resumen</div>
     </div>
     <div class="scroll" id="resumen-scroll">
+
+      <!-- Nombre evaluador -->
+      <div class="lbl">¿Quién evalúa?</div>
+      <div class="nombre-wrap">
+        <span class="nombre-label">👤</span>
+        <input type="text" id="nombre-input" placeholder="Tu nombre (ej: Eduardo)" maxlength="30">
+      </div>
+
       <div class="stats-row" id="stats"></div>
       <div id="resumen-list"></div>
+
+      <!-- Exportar -->
+      <button class="btn-export" id="btn-export">📤 Exportar para WhatsApp</button>
       <button class="btn-reset" id="btn-reset">Reiniciar evaluación</button>
       <div style="height:24px"></div>
     </div>
   </div>
 
 </div>
+
+<!-- MODAL EXPORTAR -->
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Listo para compartir</div>
+    <div class="modal-sub">Copia el texto y pégalo en el grupo de WhatsApp</div>
+    <div class="modal-text" id="modal-text"></div>
+    <button class="btn-copy" id="btn-copy">Copiar al portapapeles</button>
+    <button class="btn-cerrar" id="btn-cerrar">Cerrar</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -190,20 +238,29 @@ var WINES = [
   { id:'arizcuren', name:'Arizcuren',            type:'Tinto · Rioja',          frase:'Es una garnacha con más carácter, muy buena para carne' }
 ];
 
-var STORAGE_KEY = 'cascaras_vinos_2026_v2';
+var STORAGE_KEY = 'cascaras_vinos_2026_v3';
 var DATA = {};
 var current = null;
+var nombre = '';
 
 function guardar() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); } catch(e) {}
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ data: DATA, nombre: nombre }));
+  } catch(e) {}
 }
 function cargar() {
   try {
     var raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
       var parsed = JSON.parse(raw);
-      for (var i = 0; i < WINES.length; i++) {
-        if (parsed[WINES[i].id]) DATA[WINES[i].id] = parsed[WINES[i].id];
+      if (parsed.data) {
+        for (var i = 0; i < WINES.length; i++) {
+          if (parsed.data[WINES[i].id]) DATA[WINES[i].id] = parsed.data[WINES[i].id];
+        }
+      }
+      if (parsed.nombre) {
+        nombre = parsed.nombre;
+        document.getElementById('nombre-input').value = nombre;
       }
     }
   } catch(e) {}
@@ -213,6 +270,12 @@ function cargar() {
     }
   }
 }
+
+// Nombre
+document.getElementById('nombre-input').addEventListener('input', function() {
+  nombre = this.value;
+  guardar();
+});
 
 var _saveTimer = null;
 function mostrarGuardado() {
@@ -298,8 +361,7 @@ for (var i = 0; i < pchips.length; i++) {
   });
 }
 document.getElementById('frase').addEventListener('input', function() {
-  DATA[current].frase = this.value;
-  guardar(); mostrarGuardado();
+  DATA[current].frase = this.value; guardar(); mostrarGuardado();
 });
 document.getElementById('yn-si').addEventListener('click', function() {
   var d = DATA[current]; d.venta = d.venta === 'si' ? null : 'si';
@@ -348,6 +410,7 @@ for (var i = 0; i < dvals.length; i++) {
     if (d.decision) toast(msgs[d.decision]);
   });
 }
+
 document.getElementById('back-eval').addEventListener('click', function() { renderLista(); show('s-list'); });
 document.getElementById('back-resumen').addEventListener('click', function() { renderLista(); show('s-list'); });
 document.getElementById('btn-resumen').addEventListener('click', function() { renderResumen(); show('s-resumen'); });
@@ -383,10 +446,7 @@ function renderResumen() {
           var card = document.createElement('div'); card.className = 'sum-card';
           card.innerHTML =
             '<div class="sum-dot '+cls+'">'+g.icon+'</div>' +
-            '<div class="sum-info">' +
-              '<div class="sum-name">'+w.name+'</div>' +
-              '<div class="sum-frase">'+d.frase+'</div>' +
-            '</div>' +
+            '<div class="sum-info"><div class="sum-name">'+w.name+'</div><div class="sum-frase">'+d.frase+'</div></div>' +
             '<div class="sum-badge '+cls+'">'+(g.key ? g.key.toUpperCase() : '—')+'</div>';
           card.addEventListener('click', function() { abrirEval(w.id); });
           grp.appendChild(card);
@@ -398,21 +458,93 @@ function renderResumen() {
   document.getElementById('resumen-scroll').scrollTop = 0;
 }
 
+// ── EXPORTAR ──────────────────────────────────────────────────────
+function generarTexto() {
+  var quien = nombre || 'Sin nombre';
+  var fecha = new Date();
+  var fechaStr = fecha.getDate() + '/' + (fecha.getMonth()+1) + '/' + fecha.getFullYear();
+  var lineas = [];
+  lineas.push('🍷 Cáscaras · Salón de Vinos 2026');
+  lineas.push('👤 ' + quien + ' · ' + fechaStr);
+  lineas.push('─────────────────');
+
+  var grupos = [
+    { key:'fijo',       label:'✅ FIJOS EN CARTA' },
+    { key:'prueba',     label:'🤔 A PRUEBA' },
+    { key:'descartado', label:'❌ DESCARTADOS' },
+    { key:null,         label:'· PENDIENTES' }
+  ];
+  for (var gi = 0; gi < grupos.length; gi++) {
+    var g = grupos[gi];
+    var wines = [];
+    for (var i = 0; i < WINES.length; i++) if (DATA[WINES[i].id].decision === g.key) wines.push(WINES[i]);
+    if (!wines.length) continue;
+    lineas.push('');
+    lineas.push(g.label);
+    for (var i = 0; i < wines.length; i++) {
+      var w = wines[i];
+      var d = DATA[w.id];
+      var venta = d.venta === 'si' ? ' · se vende fácil' : (d.venta === 'no' ? ' · difícil de vender' : '');
+      lineas.push('  ' + w.name + venta);
+      if (d.frase) lineas.push('  "' + d.frase + '"');
+    }
+  }
+  lineas.push('');
+  lineas.push('─────────────────');
+  lineas.push('espaciocascaras-afk.github.io/vino');
+  return lineas.join('\n');
+}
+
+document.getElementById('btn-export').addEventListener('click', function() {
+  var texto = generarTexto();
+  document.getElementById('modal-text').textContent = texto;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+});
+
+document.getElementById('btn-cerrar').addEventListener('click', function() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+});
+
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.add('hidden');
+});
+
+document.getElementById('btn-copy').addEventListener('click', function() {
+  var texto = document.getElementById('modal-text').textContent;
+  try {
+    navigator.clipboard.writeText(texto).then(function() {
+      toast('✓ Copiado — pégalo en WhatsApp');
+    });
+  } catch(e) {
+    // fallback para Safari
+    var ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); toast('✓ Copiado — pégalo en WhatsApp'); } catch(e2) {}
+    document.body.removeChild(ta);
+  }
+});
+
+// ── RESET ─────────────────────────────────────────────────────────
 document.getElementById('btn-reset').addEventListener('click', function() {
   if (!confirm('¿Reiniciar toda la evaluación? Se restaurarán las frases originales.')) return;
-  for (var i = 0; i < WINES.length; i++) {
+  for (var i = 0; i < WINES.length; i++)
     DATA[WINES[i].id] = { perfil:null, frase:WINES[i].frase, venta:null, cliente:[], uso:null, decision:null };
-  }
   guardar(); renderLista(); show('s-list'); toast('Evaluación reiniciada');
 });
 
+// ── TOAST ─────────────────────────────────────────────────────────
 var _tt = null;
 function toast(msg) {
   var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
   if (_tt) clearTimeout(_tt);
-  _tt = setTimeout(function(){ el.classList.remove('show'); }, 2200);
+  _tt = setTimeout(function(){ el.classList.remove('show'); }, 2500);
 }
 
+// ── INIT ──────────────────────────────────────────────────────────
 cargar();
 renderLista();
 </script>
